@@ -16,16 +16,17 @@
  */
 package spark.examples.filter;
 
-import static spark.Spark.before;
-import static spark.Spark.*;
-
+import spark.Spark;
 
 public class FilterExampleWildcard {
 
     public static void main(String[] args) {
-        before("/protected/*", (request, response) -> {
+
+        Spark spark = new Spark();
+
+        spark.before("/protected/*", (request, response) -> {
             // ... check if authenticated
-            halt(401, "Go Away!");
+            spark.halt(401, "Go Away!");
         });
     }
 

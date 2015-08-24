@@ -21,7 +21,6 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import spark.Access;
 import spark.QueryParamsMap;
 import spark.Request;
 import spark.Session;
@@ -40,7 +39,7 @@ final class RequestWrapper extends Request {
     }
 
     public void changeMatch(RouteMatch match) {
-        Access.changeMatch(delegate, match);
+        delegate.changeMatch(match);
     }
 
     @Override

@@ -21,28 +21,19 @@ import spark.examples.exception.SubclassOfBaseException;
 import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
 
-import static spark.Spark.after;
-import static spark.Spark.before;
-import static spark.Spark.exception;
-import static spark.Spark.get;
-import static spark.Spark.halt;
-import static spark.Spark.patch;
-import static spark.Spark.post;
-import static spark.SparkBase.externalStaticFileLocation;
-import static spark.SparkBase.staticFileLocation;
-
 public class GenericIntegrationTest {
 
     private static final String NOT_FOUND_BRO = "Not found bro";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericIntegrationTest.class);
+    private static Spark spark;
 
     static SparkTestUtil testUtil;
     static File tmpExternalFile;
 
     @AfterClass
     public static void tearDown() {
-        Spark.stop();
+        spark.stop();
         if (tmpExternalFile != null) {
             tmpExternalFile.delete();
         }
@@ -50,6 +41,7 @@ public class GenericIntegrationTest {
 
     @BeforeClass
     public static void setup() throws IOException {
+        spark = new Spark();
         testUtil = new SparkTestUtil(4567);
 
         tmpExternalFile = new File(System.getProperty("java.io.tmpdir"), "externalFile.html");
@@ -59,54 +51,54 @@ public class GenericIntegrationTest {
         writer.flush();
         writer.close();
 
-        staticFileLocation("/public");
-        externalStaticFileLocation(System.getProperty("java.io.tmpdir"));
+        spark.staticFileLocation("/public");
+        spark.externalStaticFileLocation(System.getProperty("java.io.tmpdir"));
 
-        before("/secretcontent/*", (request, response) -> {
-            halt(401, "Go Away!");
+        spark.before("/secretcontent/*", (request, response) -> {
+            spark.halt(401, "Go Away!");
         });
 
-        before("/protected/*", "application/xml", (request, response) -> {
-            halt(401, "Go Away!");
+        spark.before("/protected/*", "application/xml", (request, response) -> {
+            spark.halt(401, "Go Away!");
         });
 
-        before("/protected/*", "application/json", (request, response) -> {
-            halt(401, "{\"message\": \"Go Away!\"}");
+        spark.before("/protected/*", "application/json", (request, response) -> {
+            spark.halt(401, "{\"message\": \"Go Away!\"}");
         });
 
-        get("/hi", "application/json", (request, response) -> {
+        spark.get("/hi", "application/json", (request, response) -> {
             return "{\"message\": \"Hello World\"}";
         });
 
-        get("/hi", (request, response) -> {
+        spark.get("/hi", (request, response) -> {
             return "Hello World!";
         });
 
-        get("/binaryhi", (request, response) -> {
+        spark.get("/binaryhi", (request, response) -> {
             return "Hello World!".getBytes();
         });
 
-        get("/bytebufferhi", (request, response) -> {
+        spark.get("/bytebufferhi", (request, response) -> {
             return ByteBuffer.wrap("Hello World!".getBytes());
         });
 
-        get("/inputstreamhi", (request, response) -> {
+        spark.get("/inputstreamhi", (request, response) -> {
             return new ByteArrayInputStream("Hello World!".getBytes("utf-8"));
         });
 
-        get("/param/:param", (request, response) -> {
+        spark.get("/param/:param", (request, response) -> {
             return "echo: " + request.params(":param");
         });
 
-        get("/paramandwild/:param/stuff/*", (request, response) -> {
+        spark.get("/paramandwild/:param/stuff/*", (request, response) -> {
             return "paramandwild: " + request.params(":param") + request.splat()[0];
         });
 
-        get("/paramwithmaj/:paramWithMaj", (request, response) -> {
+        spark.get("/paramwithmaj/:paramWithMaj", (request, response) -> {
             return "echo: " + request.params(":paramWithMaj");
         });
 
-        get("/templateView", (request, response) -> {
+        spark.get("/templateView", (request, response) -> {
             return new ModelAndView("Hello", "my view");
         }, new TemplateEngine() {
             public String render(ModelAndView modelAndView) {
@@ -114,64 +106,61 @@ public class GenericIntegrationTest {
             }
         });
 
-        get("/", (request, response) -> {
+        spark.get("/", (request, response) -> {
             return "Hello Root!";
         });
 
-        post("/poster", (request, response) -> {
+        spark.post("/poster", (request, response) -> {
             String body = request.body();
             response.status(201); // created
             return "Body was: " + body;
         });
 
-        post("/post_via_get", (request, response) -> {
+        spark.post("/post_via_get", (request, response) -> {
             response.status(201); // created
             return "Method Override Worked";
         });
 
-        get("/post_via_get", (request, response) -> {
+        spark.get("/post_via_get", (request, response) -> {
             return "Method Override Did Not Work";
         });
 
-        patch("/patcher", (request, response) -> {
+        spark.patch("/patcher", (request, response) -> {
             String body = request.body();
             response.status(200);
             return "Body was: " + body;
         });
 
-        after("/hi", (request, response) -> {
+        spark.after("/hi", (request, response) -> {
             response.header("after", "foobar");
         });
 
-        get("/throwexception", (request, response) -> {
+        spark.get("/throwexception", (request, response) -> {
             throw new UnsupportedOperationException();
         });
 
-        get("/throwsubclassofbaseexception", (request, response) -> {
+        spark.get("/throwsubclassofbaseexception", (request, response) -> {
             throw new SubclassOfBaseException();
         });
 
-        get("/thrownotfound", (request, response) -> {
+        spark.get("/thrownotfound", (request, response) -> {
             throw new NotFoundException();
         });
 
-        exception(UnsupportedOperationException.class, (exception, request, response) -> {
+        spark.exception(UnsupportedOperationException.class, (exception, request, response) -> {
             response.body("Exception handled");
         });
 
-        exception(BaseException.class, (exception, request, response) -> {
+        spark.exception(BaseException.class, (exception, request, response) -> {
             response.body("Exception handled");
         });
 
-        exception(NotFoundException.class, (exception, request, response) -> {
+        spark.exception(NotFoundException.class, (exception, request, response) -> {
             response.status(404);
             response.body(NOT_FOUND_BRO);
         });
 
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-        }
+        spark.awaitInitialization();
     }
 
     @Test
@@ -336,7 +325,7 @@ public class GenericIntegrationTest {
     }
 
     private static void registerEchoRoute(final String routePart) {
-        get("/tworoutes/" + routePart + "/:param", (request, response) -> {
+        spark.get("/tworoutes/" + routePart + "/:param", (request, response) -> {
             return routePart + " route: " + request.params(":param");
         });
     }

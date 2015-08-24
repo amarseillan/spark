@@ -32,14 +32,13 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import spark.Access;
 import spark.resource.AbstractFileResolvingResource;
 import spark.resource.AbstractResourceHandler;
 import spark.resource.ClassPathResource;
 import spark.resource.ClassPathResourceHandler;
 import spark.resource.ExternalResource;
 import spark.resource.ExternalResourceHandler;
-import spark.route.RouteMatcherFactory;
+import spark.route.SimpleRouteMatcher;
 import spark.utils.IOUtils;
 import spark.webserver.MatcherFilter;
 
@@ -65,13 +64,13 @@ public class SparkFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        Access.runFromServlet();
 
         final SparkApplication application = getApplication(filterConfig);
+        application.getSpark().runFromServlet();
         application.init();
 
         filterPath = FilterTools.getFilterPath(filterConfig);
-        matcherFilter = new MatcherFilter(RouteMatcherFactory.get(), true, false);
+        matcherFilter = new MatcherFilter(new SimpleRouteMatcher(), true, false);
     }
 
     /**

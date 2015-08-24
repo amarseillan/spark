@@ -16,8 +16,7 @@
  */
 package spark.examples.simple;
 
-import static spark.Spark.*;
-import static spark.Spark.post;
+import spark.Spark;
 
 /**
  * A simple example just showing some basic functionality
@@ -28,34 +27,35 @@ public class SimpleExample {
 
     public static void main(String[] args) {
 
+        Spark spark = new Spark();
         //  port(5678); <- Uncomment this if you want spark to listen on a port different than 4567
 
-        get("/hello", (request, response) -> "Hello World!");
+        spark.get("/hello", (request, response) -> "Hello World!");
 
-        post("/hello", (request, response) -> "Hello World: " + request.body());
+        spark.post("/hello", (request, response) -> "Hello World: " + request.body());
 
-        get("/private", (request, response) -> {
+        spark.get("/private", (request, response) -> {
             response.status(401);
             return "Go Away!!!";
         });
 
-        get("/users/:name", (request, response) -> "Selected user: " + request.params(":name"));
+        spark.get("/users/:name", (request, response) -> "Selected user: " + request.params(":name"));
 
-        get("/news/:section", (request, response) -> {
+        spark.get("/news/:section", (request, response) -> {
             response.type("text/xml");
             return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><news>" + request.params("section") + "</news>";
         });
 
-        get("/protected", (request, response) -> {
-            halt(403, "I don't think so!!!");
+        spark.get("/protected", (request, response) -> {
+            spark.halt(403, "I don't think so!!!");
             return null;
         });
 
-        get("/redirect", (request, response) -> {
+        spark.get("/redirect", (request, response) -> {
             response.redirect("/news/world");
             return null;
         });
 
-        get("/", (request, response) -> "root");
+        spark.get("/", (request, response) -> "root");
     }
 }

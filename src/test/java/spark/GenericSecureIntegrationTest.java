@@ -2,83 +2,74 @@ package spark;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import spark.servlet.ServletTest;
 import spark.util.SparkTestUtil;
 import spark.util.SparkTestUtil.UrlResponse;
-
-import static spark.Spark.after;
-import static spark.Spark.before;
-import static spark.Spark.get;
-import static spark.Spark.halt;
-import static spark.Spark.patch;
-import static spark.Spark.post;
 
 public class GenericSecureIntegrationTest {
 
     static SparkTestUtil testUtil;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericSecureIntegrationTest.class);
+    private static Spark spark;
 
     @AfterClass
     public static void tearDown() {
-        Spark.stop();
+        spark.stop();
     }
 
     @BeforeClass
     public static void setup() {
+        spark = new Spark();
         testUtil = new SparkTestUtil(4567);
 
         // note that the keystore stuff is retrieved from SparkTestUtil which
         // respects JVM params for keystore, password
         // but offers a default included store if not.
-        Spark.secure(SparkTestUtil.getKeyStoreLocation(),
+        spark.secure(SparkTestUtil.getKeyStoreLocation(),
                      SparkTestUtil.getKeystorePassword(), null, null);
 
-        before("/protected/*", (request, response) -> {
-            halt(401, "Go Away!");
+        spark.before("/protected/*", (request, response) -> {
+            spark.halt(401, "Go Away!");
         });
 
-        get("/hi", (request, response) -> {
+        spark.get("/hi", (request, response) -> {
             return "Hello World!";
         });
 
-        get("/:param", (request, response) -> {
+        spark.get("/:param", (request, response) -> {
             return "echo: " + request.params(":param");
         });
 
-        get("/paramwithmaj/:paramWithMaj", (request, response) -> {
+        spark.get("/paramwithmaj/:paramWithMaj", (request, response) -> {
             return "echo: " + request.params(":paramWithMaj");
         });
 
-        get("/", (request, response) -> {
+        spark.get("/", (request, response) -> {
             return "Hello Root!";
         });
 
-        post("/poster", (request, response) -> {
+        spark.post("/poster", (request, response) -> {
             String body = request.body();
             response.status(201); // created
             return "Body was: " + body;
         });
 
-        patch("/patcher", (request, response) -> {
+        spark.patch("/patcher", (request, response) -> {
             String body = request.body();
             response.status(200);
             return "Body was: " + body;
         });
 
-        after("/hi", (request, response) -> {
+        spark.after("/hi", (request, response) -> {
             response.header("after", "foobar");
         });
 
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-        }
+        spark.awaitInitialization();
     }
 
     @Test

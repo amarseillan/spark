@@ -16,8 +16,7 @@
  */
 package spark.examples.staticresources;
 
-import static spark.Spark.get;
-import static spark.Spark.staticFileLocation;
+import spark.Spark;
 
 /**
  * Example showing how serve static resources.
@@ -26,10 +25,11 @@ public class StaticResources {
 
     public static void main(String[] args) {
 
+        Spark spark = new Spark();
         // Will serve all static file are under "/public" in classpath if the route isn't consumed by others routes.
-        staticFileLocation("/public");
+        spark.staticFileLocation("/public");
 
-        get("/hello", (request, response) -> {
+        spark.get("/hello", (request, response) -> {
             return "Hello World!";
         });
     }

@@ -22,11 +22,7 @@ import java.util.Map;
 import spark.Filter;
 import spark.Request;
 import spark.Response;
-
-import static spark.Spark.after;
-import static spark.Spark.before;
-import static spark.Spark.get;
-import static spark.Spark.halt;
+import spark.Spark;
 
 /**
  * Example showing a very simple (and stupid) autentication filter that is
@@ -51,7 +47,9 @@ public class FilterExample {
         usernamePasswords.put("foo", "bar");
         usernamePasswords.put("admin", "admin");
 
-        before(new Filter() {
+        Spark spark = new Spark();
+
+        spark.before(new Filter() {
             @Override
             public void handle(Request request, Response response) {
                 String user = request.queryParams("user");
@@ -59,20 +57,20 @@ public class FilterExample {
 
                 String dbPassword = usernamePasswords.get(user);
                 if (!(password != null && password.equals(dbPassword))) {
-                    halt(401, "You are not welcome here!!!");
+                    spark.halt(401, "You are not welcome here!!!");
                 }
             }
         });
 
-        before("/hello", (request, response) -> {
+        spark.before("/hello", (request, response) -> {
             response.header("Foo", "Set by second before filter");
         });
 
-        get("/hello", (request, response) -> {
+        spark.get("/hello", (request, response) -> {
             return "Hello World!";
         });
 
-        after("/hello", (request, response) -> {
+        spark.after("/hello", (request, response) -> {
             response.header("spark", "added by after-filter");
         });
 

@@ -16,10 +16,7 @@
  */
 package spark.examples.books;
 
-import static spark.Spark.delete;
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.put;
+import spark.Spark;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,11 +34,11 @@ public class Books {
      */
     public static Map<String, Book> books = new HashMap<String, Book>();
 
-    public static void main(String[] args) {
+    public static void register(Spark spark) {
 
         // Creates a new book resource, will return the ID to the created resource
         // author and title are sent as query parameters e.g. /books?author=Foo&title=Bar
-        post("/books", (request, response) -> {
+        spark.post("/books", (request, response) -> {
             String author = request.queryParams("author");
             String title = request.queryParams("title");
             Book book = new Book(author, title);
@@ -54,7 +51,7 @@ public class Books {
         });
 
         // Gets the book resource for the provided id
-        get("/books/:id", (request, response) -> {
+        spark.get("/books/:id", (request, response) -> {
             Book book = books.get(request.params(":id"));
             if (book != null) {
                 return "Title: " + book.getTitle() + ", Author: " + book.getAuthor();
@@ -66,7 +63,7 @@ public class Books {
 
         // Updates the book resource for the provided id with new information
         // author and title are sent as query parameters e.g. /books/<id>?author=Foo&title=Bar
-        put("/books/:id", (request, response) -> {
+        spark.put("/books/:id", (request, response) -> {
             String id = request.params(":id");
             Book book = books.get(id);
             if (book != null) {
@@ -86,7 +83,7 @@ public class Books {
         });
 
         // Deletes the book resource for the provided id 
-        delete("/books/:id", (request, response) -> {
+        spark.delete("/books/:id", (request, response) -> {
             String id = request.params(":id");
             Book book = books.remove(id);
             if (book != null) {
@@ -98,7 +95,7 @@ public class Books {
         });
 
         // Gets all available book resources (id's)
-        get("/books", (request, response) -> {
+        spark.get("/books", (request, response) -> {
             String ids = "";
             for (String id : books.keySet()) {
                 ids += id + " ";

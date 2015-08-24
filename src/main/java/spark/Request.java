@@ -98,7 +98,7 @@ public class Request {
         changeMatch(match);
     }
 
-    protected void changeMatch(RouteMatch match) {
+    public void changeMatch(RouteMatch match) {
         List<String> requestList = SparkUtils.convertRouteToList(match.getRequestURI());
         List<String> matchedList = SparkUtils.convertRouteToList(match.getMatchUri());
 

@@ -21,43 +21,47 @@ public class CookiesIntegrationTest {
 
     private static final String DEFAULT_HOST_URL = "http://localhost:4567";
     private HttpClient httpClient = new DefaultHttpClient();
+    private static Spark spark;
 
     @BeforeClass
     public static void initRoutes() throws InterruptedException {
-        post("/assertNoCookies", (request, response) -> {
+        spark = new Spark();
+        spark.post("/assertNoCookies", (request, response) -> {
             if (!request.cookies().isEmpty()) {
-                halt(500);
+                spark.halt(500);
             }
             return "";
         });
 
-        post("/setCookie", (request, response) -> {
+        spark.post("/setCookie", (request, response) -> {
             response.cookie(request.queryParams("cookieName"), request.queryParams("cookieValue"));
             return "";
         });
 
-        post("/assertHasCookie", (request, response) -> {
+        spark.post("/assertHasCookie", (request, response) -> {
             String cookieValue = request.cookie(request.queryParams("cookieName"));
             if (!request.queryParams("cookieValue").equals(cookieValue)) {
-                halt(500);
+                spark.halt(500);
             }
             return "";
         });
 
-        post("/removeCookie", (request, response) -> {
+        spark.post("/removeCookie", (request, response) -> {
             String cookieName = request.queryParams("cookieName");
             String cookieValue = request.cookie(cookieName);
             if (!request.queryParams("cookieValue").equals(cookieValue)) {
-                halt(500);
+                spark.halt(500);
             }
             response.removeCookie(cookieName);
             return "";
         });
+
+        spark.awaitInitialization();
     }
 
     @AfterClass
     public static void stopServer() {
-        Spark.stop();
+        spark.stop();
     }
 
     @Test

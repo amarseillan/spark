@@ -16,13 +16,15 @@
  */
 package spark.examples.hello;
 
-import static spark.Spark.get;
+import spark.Spark;
 
 public class HelloWorld {
 
     public static void main(String[] args) {
 
-        get("/hello", (request, response) -> {
+        Spark spark = new Spark();
+
+        spark.get("/hello", (request, response) -> {
             return "Hello World!";
         });
 

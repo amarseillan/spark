@@ -3,8 +3,6 @@ package spark;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static spark.Spark.after;
-import static spark.Spark.before;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,12 +28,13 @@ public class BooksIntegrationTest {
     private static String AUTHOR = "FOO";
     private static String TITLE = "BAR";
     private static String NEW_TITLE = "SPARK";
+    private static Spark spark;
 
     private String bookId;
 
     @AfterClass
     public static void tearDown() {
-        Spark.stop();
+        spark.stop();
     }
 
     @After
@@ -45,20 +44,18 @@ public class BooksIntegrationTest {
 
     @BeforeClass
     public static void setup() {
-        before((request, response) -> {
+        spark = new Spark();
+        spark.before((request, response) -> {
             response.header("FOZ", "BAZ");
         });
 
-        Books.main(null);
+        Books.register(spark);
 
-        after((request, response) -> {
+        spark.after((request, response) -> {
             response.header("FOO", "BAR");
         });
 
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-        }
+        spark.awaitInitialization();
     }
 
     @Test

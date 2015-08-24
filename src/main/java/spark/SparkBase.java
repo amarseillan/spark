@@ -5,7 +5,6 @@ import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import spark.route.RouteMatcherFactory;
 import spark.route.SimpleRouteMatcher;
 import spark.servlet.SparkFilter;
 import spark.webserver.SparkServer;
@@ -19,31 +18,31 @@ public abstract class SparkBase {
     public static final int SPARK_DEFAULT_PORT = 4567;
     protected static final String DEFAULT_ACCEPT_TYPE = "*/*";
 
-    protected static boolean initialized = false;
+    protected boolean initialized = false;
 
-    protected static int port = SPARK_DEFAULT_PORT;
-    protected static String ipAddress = "0.0.0.0";
+    protected int port = SPARK_DEFAULT_PORT;
+    protected String ipAddress = "0.0.0.0";
 
-    protected static String keystoreFile;
-    protected static String keystorePassword;
-    protected static String truststoreFile;
-    protected static String truststorePassword;
+    protected String keystoreFile;
+    protected String keystorePassword;
+    protected String truststoreFile;
+    protected String truststorePassword;
 
-    protected static String staticFileFolder = null;
-    protected static String externalStaticFileFolder = null;
+    protected String staticFileFolder = null;
+    protected String externalStaticFileFolder = null;
 
-    protected static int maxThreads = -1;
-    protected static int minThreads = -1;
-    protected static int threadIdleTimeoutMillis = -1;
+    protected int maxThreads = -1;
+    protected int minThreads = -1;
+    protected int threadIdleTimeoutMillis = -1;
 
-    protected static SparkServer server;
-    protected static SimpleRouteMatcher routeMatcher;
-    private static boolean runFromServlet;
+    protected SparkServer server;
+    protected SimpleRouteMatcher routeMatcher;
+    private boolean runFromServlet;
 
-    private static boolean servletStaticLocationSet;
-    private static boolean servletExternalStaticLocationSet;
+    private boolean servletStaticLocationSet;
+    private boolean servletExternalStaticLocationSet;
 
-    private static CountDownLatch latch = new CountDownLatch(1);
+    private CountDownLatch latch = new CountDownLatch(1);
 
     /**
      * Set the IP address that Spark should listen on. If not called the default
@@ -53,11 +52,11 @@ public abstract class SparkBase {
      * @param ipAddress The ipAddress
      * @deprecated replaced by {@link #ipAddress(String)}
      */
-    public static synchronized void setIpAddress(String ipAddress) {
+    public synchronized void setIpAddress(String ipAddress) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
-        Spark.ipAddress = ipAddress;
+        this.ipAddress = ipAddress;
     }
 
     /**
@@ -67,11 +66,11 @@ public abstract class SparkBase {
      *
      * @param ipAddress The ipAddress
      */
-    public static synchronized void ipAddress(String ipAddress) {
+    public synchronized void ipAddress(String ipAddress) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
-        Spark.ipAddress = ipAddress;
+        this.ipAddress = ipAddress;
     }
 
     /**
@@ -82,11 +81,11 @@ public abstract class SparkBase {
      * @param port The port number
      * @deprecated replaced by {@link #port(int)}
      */
-    public static synchronized void setPort(int port) {
+    public synchronized void setPort(int port) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
-        Spark.port = port;
+        this.port = port;
     }
 
     /**
@@ -96,11 +95,11 @@ public abstract class SparkBase {
      *
      * @param port The port number
      */
-    public static synchronized void port(int port) {
+    public synchronized void port(int port) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
-        Spark.port = port;
+        this.port = port;
     }
 
     /**
@@ -119,7 +118,7 @@ public abstract class SparkBase {
      * @param truststorePassword the trust store password
      * @deprecated replaced by {@link #secure(String, String, String, String)}
      */
-    public static synchronized void setSecure(String keystoreFile,
+    public synchronized void setSecure(String keystoreFile,
                                               String keystorePassword,
                                               String truststoreFile,
                                               String truststorePassword) {
@@ -132,10 +131,10 @@ public abstract class SparkBase {
                     "Must provide a keystore file to run secured");
         }
 
-        Spark.keystoreFile = keystoreFile;
-        Spark.keystorePassword = keystorePassword;
-        Spark.truststoreFile = truststoreFile;
-        Spark.truststorePassword = truststorePassword;
+        this.keystoreFile = keystoreFile;
+        this.keystorePassword = keystorePassword;
+        this.truststoreFile = truststoreFile;
+        this.truststorePassword = truststorePassword;
     }
 
     /**
@@ -153,7 +152,7 @@ public abstract class SparkBase {
      *                           keystore
      * @param truststorePassword the trust store password
      */
-    public static synchronized void secure(String keystoreFile,
+    public synchronized void secure(String keystoreFile,
                                            String keystorePassword,
                                            String truststoreFile,
                                            String truststorePassword) {
@@ -166,10 +165,10 @@ public abstract class SparkBase {
                     "Must provide a keystore file to run secured");
         }
 
-        Spark.keystoreFile = keystoreFile;
-        Spark.keystorePassword = keystorePassword;
-        Spark.truststoreFile = truststoreFile;
-        Spark.truststorePassword = truststorePassword;
+        this.keystoreFile = keystoreFile;
+        this.keystorePassword = keystorePassword;
+        this.truststoreFile = truststoreFile;
+        this.truststorePassword = truststorePassword;
     }
 
     /**
@@ -177,7 +176,7 @@ public abstract class SparkBase {
      *
      * @param maxThreads        max nbr of threads.
      */
-    public static synchronized void threadPool(int maxThreads) {
+    public synchronized void threadPool(int maxThreads) {
         threadPool(maxThreads, -1, -1);
     }
 
@@ -188,23 +187,23 @@ public abstract class SparkBase {
      * @param minThreads        min nbr of threads.
      * @param idleTimeoutMillis thread idle timeout (ms).
      */
-    public static synchronized void threadPool(int maxThreads, int minThreads, int idleTimeoutMillis) {
+    public synchronized void threadPool(int maxThreads, int minThreads, int idleTimeoutMillis) {
         if (initialized) {
             throwBeforeRouteMappingException();
         }
 
-        Spark.maxThreads = maxThreads;
-        Spark.minThreads = minThreads;
-        Spark.threadIdleTimeoutMillis = idleTimeoutMillis;
+        this.maxThreads = maxThreads;
+        this.minThreads = minThreads;
+        this.threadIdleTimeoutMillis = idleTimeoutMillis;
     }
 
     /**
-     * Sets the folder in classpath serving static files. Observe: this method
+     * Sets the folder in classpath serving files. Observe: this method
      * must be called before all other methods.
      *
      * @param folder the folder in classpath.
      */
-    public static synchronized void staticFileLocation(String folder) {
+    public synchronized void staticFileLocation(String folder) {
         if (initialized && !runFromServlet) {
             throwBeforeRouteMappingException();
         }
@@ -215,17 +214,17 @@ public abstract class SparkBase {
                 servletStaticLocationSet = true;
             }
         } else {
-            LOG.warn("Static file location has already been set");
+            LOG.warn("file location has already been set");
         }
     }
 
     /**
-     * Sets the external folder serving static files. <b>Observe: this method
+     * Sets the external folder serving files. <b>Observe: this method
      * must be called before all other methods.</b>
      *
-     * @param externalFolder the external folder serving static files.
+     * @param externalFolder the external folder serving files.
      */
-    public static synchronized void externalStaticFileLocation(String externalFolder) {
+    public synchronized void externalStaticFileLocation(String externalFolder) {
         if (initialized && !runFromServlet) {
             throwBeforeRouteMappingException();
         }
@@ -244,7 +243,7 @@ public abstract class SparkBase {
      * Waits for the spark server to be initialized.
      * If it's already initialized will return immediately
      */
-    public static void awaitInitialization() {
+    public void awaitInitialization() {
         try {
             latch.await();
         } catch (InterruptedException e) {
@@ -252,12 +251,12 @@ public abstract class SparkBase {
         }
     }
 
-    private static void throwBeforeRouteMappingException() {
+    private void throwBeforeRouteMappingException() {
         throw new IllegalStateException(
                 "This must be done before route mapping has begun");
     }
 
-    private static boolean hasMultipleHandlers() {
+    private boolean hasMultipleHandlers() {
         return staticFileFolder != null || externalStaticFileFolder != null;
     }
 
@@ -265,7 +264,7 @@ public abstract class SparkBase {
     /**
      * Stops the Spark server and clears all routes
      */
-    public static synchronized void stop() {
+    public synchronized void stop() {
         if (server != null) {
             routeMatcher.clearRoutes();
             server.stop();
@@ -274,10 +273,10 @@ public abstract class SparkBase {
         initialized = false;
     }
 
-    static synchronized void runFromServlet() {
+    public synchronized void runFromServlet() {
         runFromServlet = true;
         if (!initialized) {
-            routeMatcher = RouteMatcherFactory.get();
+            routeMatcher = new SimpleRouteMatcher();
             initialized = true;
         }
     }
@@ -289,7 +288,7 @@ public abstract class SparkBase {
      * @param route the route
      * @return the wrapped route
      */
-    protected static RouteImpl wrap(final String path, final Route route) {
+    protected RouteImpl wrap(final String path, final Route route) {
         return wrap(path, DEFAULT_ACCEPT_TYPE, route);
     }
 
@@ -301,7 +300,7 @@ public abstract class SparkBase {
      * @param route      the route
      * @return the wrapped route
      */
-    protected static RouteImpl wrap(final String path, String acceptType, final Route route) {
+    protected RouteImpl wrap(final String path, String acceptType, final Route route) {
         if (acceptType == null) {
             acceptType = DEFAULT_ACCEPT_TYPE;
         }
@@ -321,7 +320,7 @@ public abstract class SparkBase {
      * @param filter the filter
      * @return the wrapped route
      */
-    protected static FilterImpl wrap(final String path, final Filter filter) {
+    protected FilterImpl wrap(final String path, final Filter filter) {
         return wrap(path, DEFAULT_ACCEPT_TYPE, filter);
     }
 
@@ -333,7 +332,7 @@ public abstract class SparkBase {
      * @param filter     the filter
      * @return the wrapped route
      */
-    protected static FilterImpl wrap(final String path, String acceptType, final Filter filter) {
+    protected FilterImpl wrap(final String path, String acceptType, final Filter filter) {
         if (acceptType == null) {
             acceptType = DEFAULT_ACCEPT_TYPE;
         }
@@ -346,25 +345,25 @@ public abstract class SparkBase {
         return impl;
     }
 
-    protected static void addRoute(String httpMethod, RouteImpl route) {
+    protected void addRoute(String httpMethod, RouteImpl route) {
         init();
         routeMatcher.parseValidateAddRoute(httpMethod + " '" + route.getPath()
                                                    + "'", route.getAcceptType(), route);
     }
 
-    protected static void addFilter(String httpMethod, FilterImpl filter) {
+    protected void addFilter(String httpMethod, FilterImpl filter) {
         init();
         routeMatcher.parseValidateAddRoute(httpMethod + " '" + filter.getPath()
                                                    + "'", filter.getAcceptType(), filter);
     }
 
-    private static synchronized void init() {
+    private synchronized void init() {
         if (!initialized) {
-            routeMatcher = RouteMatcherFactory.get();
+            routeMatcher = new SimpleRouteMatcher();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    server = SparkServerFactory.create(hasMultipleHandlers());
+                    server = SparkServerFactory.create(hasMultipleHandlers(), routeMatcher);
                     server.ignite(
                             ipAddress,
                             port,

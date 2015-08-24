@@ -1,11 +1,14 @@
 package spark.examples.transformer;
 
-import static spark.Spark.get;
+
+import spark.Spark;
 
 public class TransformerExample {
 
     public static void main(String args[]) {
-        get("/hello", "application/json", (request, response) -> {
+        Spark spark = new Spark();
+
+        spark.get("/hello", "application/json", (request, response) -> {
             return new MyMessage("Hello World");
         }, new JsonTransformer());
     }

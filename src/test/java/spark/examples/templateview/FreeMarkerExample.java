@@ -4,14 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 import spark.ModelAndView;
+import spark.Spark;
 
-import static spark.Spark.get;
 
 public class FreeMarkerExample {
 
     public static void main(String args[]) {
 
-        get("/hello", (request, response) -> {
+        Spark spark = new Spark();
+
+        spark.get("/hello", (request, response) -> {
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("message", "Hello FreeMarker World");
 
