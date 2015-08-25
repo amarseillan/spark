@@ -6,10 +6,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class MyApp extends SparkApplication {
+public class MyApp implements SparkApplication {
 
     @Override
     public void init() {
+        Spark spark = new Spark();
         try {
             spark.externalStaticFileLocation(System.getProperty("java.io.tmpdir"));
             spark.staticFileLocation("/public");

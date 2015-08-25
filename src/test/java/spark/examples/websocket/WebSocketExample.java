@@ -14,24 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package spark.servlet;
+package spark.examples.websocket;
 
 import spark.Spark;
 
-/**
- * The application entry point when Spark is run in a servlet context.
- *
- * @author Per Wendel
- */
-public interface SparkApplication {
+public class WebSocketExample {
 
-    /**
-     * Invoked from the SparkFilter. Add routes here.
-     */
-    void init();
-
-    /**
-     * Invoked from the SparkFilter.
-     */
-    default void destroy() {}
+    public static void main(String[] args) {
+        Spark spark = new Spark();
+        spark.webSocket("/echo", EchoWebSocket.class);
+        spark.webSocket("/ping", PingWebSocket.class);
+        spark.init();
+    }
 }

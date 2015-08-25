@@ -61,12 +61,12 @@ public class SparkFilter implements Filter {
 
     private String filterPath;
     private MatcherFilter matcherFilter;
+    private SparkApplication application;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
 
-        final SparkApplication application = getApplication(filterConfig);
-        application.getSpark().runFromServlet();
+        application = getApplication(filterConfig);
         application.init();
 
         filterPath = FilterTools.getFilterPath(filterConfig);
@@ -186,7 +186,9 @@ public class SparkFilter implements Filter {
 
     @Override
     public void destroy() {
-        // ignore
+        if (application != null) {
+            application.destroy();
+        }
     }
 
 }

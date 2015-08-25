@@ -1,5 +1,8 @@
 package spark;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import org.slf4j.Logger;
@@ -9,6 +12,8 @@ import spark.route.SimpleRouteMatcher;
 import spark.servlet.SparkFilter;
 import spark.webserver.SparkServer;
 import spark.webserver.SparkServerFactory;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Spark base class
@@ -31,9 +36,12 @@ public abstract class SparkBase {
     protected String staticFileFolder = null;
     protected String externalStaticFileFolder = null;
 
+    protected Map<String, Class<?>> webSocketHandlers = null;
+
     protected int maxThreads = -1;
     protected int minThreads = -1;
     protected int threadIdleTimeoutMillis = -1;
+    protected Optional<Integer> webSocketIdleTimeoutMillis = Optional.empty();
 
     protected SparkServer server;
     protected SimpleRouteMatcher routeMatcher;
@@ -174,7 +182,7 @@ public abstract class SparkBase {
     /**
      * Configures the embedded web server's thread pool.
      *
-     * @param maxThreads        max nbr of threads.
+     * @param maxThreads max nbr of threads.
      */
     public synchronized void threadPool(int maxThreads) {
         threadPool(maxThreads, -1, -1);
@@ -237,6 +245,44 @@ public abstract class SparkBase {
         } else {
             LOG.warn("External static file location has already been set");
         }
+    }
+
+    /**
+     * Maps the given path to the given WebSocket handler.
+     * <p>
+     * This is currently only available in the embedded server mode.
+     *
+     * @param path    the WebSocket path.
+     * @param handler the handler class that will manage the WebSocket connection to the given path.
+     */
+    public synchronized void webSocket(String path, Class<?> handler) {
+        requireNonNull(path, "WebSocket path cannot be null");
+        requireNonNull(handler, "WebSocket handler class cannot be null");
+        if (initialized) {
+            throwBeforeRouteMappingException();
+        }
+        if (runFromServlet) {
+            throw new IllegalStateException("WebSockets are only supported in the embedded server");
+        }
+        if (webSocketHandlers == null) {
+            webSocketHandlers = new HashMap<>();
+        }
+        webSocketHandlers.put(path, handler);
+    }
+
+    /**
+     * Sets the max idle timeout in milliseconds for WebSocket connections.
+     *
+     * @param timeoutMillis The max idle timeout in milliseconds.
+     */
+    public void webSocketIdleTimeoutMillis(int timeoutMillis) {
+        if (initialized) {
+            throwBeforeRouteMappingException();
+        }
+        if (runFromServlet) {
+            throw new IllegalStateException("WebSockets are only supported in the embedded server");
+        }
+        webSocketIdleTimeoutMillis = Optional.of(timeoutMillis);
     }
 
     /**
@@ -357,7 +403,7 @@ public abstract class SparkBase {
                                                    + "'", filter.getAcceptType(), filter);
     }
 
-    private synchronized void init() {
+    public synchronized void init() {
         if (!initialized) {
             routeMatcher = new SimpleRouteMatcher();
             new Thread(new Runnable() {
@@ -376,7 +422,9 @@ public abstract class SparkBase {
                             latch,
                             maxThreads,
                             minThreads,
-                            threadIdleTimeoutMillis);
+                            threadIdleTimeoutMillis,
+                            webSocketHandlers,
+                            webSocketIdleTimeoutMillis);
                 }
             }).start();
             initialized = true;
